@@ -1,0 +1,3 @@
+module GO_HTTP_PROTOCOL
+
+go 1.24.3
