@@ -1,6 +1,7 @@
 package main
 
 import (
+	"GO_HTTP_PROTOCOL/internal/request"
 	"bufio"
 	"errors"
 	"fmt"
@@ -44,7 +45,11 @@ func main() {
 		}
 
 		go func(c net.Conn) {
-			readBuffer(c)
+			// readBuffer(c)
+			_, err := request.RequestFromReader(c)
+			if err != nil {
+				fmt.Printf("%s", err)
+			}
 			c.Close()
 		}(conn)
 
