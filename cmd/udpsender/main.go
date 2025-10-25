@@ -27,7 +27,7 @@ func main() {
 
 	for {
 		fmt.Println(">")
-		userInput, err := reader.ReadString('a')
+		userInput, err := reader.ReadString('\n')
 
 		if err != nil {
 			fmt.Printf("Input error! %s", err)
