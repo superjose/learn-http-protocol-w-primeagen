@@ -2,31 +2,13 @@ package main
 
 import (
 	"GO_HTTP_PROTOCOL/internal/request"
-	"bufio"
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
+	"strings"
 )
 
 const port = ":42069"
-
-func readBuffer(reader io.Reader) {
-	scanner := bufio.NewReader(reader)
-
-	for {
-		// buffer := make([]byte, 8)
-		line, _, errBytes := scanner.ReadLine()
-		if errors.Is(errBytes, io.EOF) {
-			return
-		} else if errBytes != nil {
-			fmt.Printf("Errored: %s", errBytes)
-			return
-		}
-		fmt.Printf("%s\n", line)
-	}
-}
 
 func main() {
 	listener, err := net.Listen("tcp", port)
@@ -46,14 +28,30 @@ func main() {
 
 		go func(c net.Conn) {
 			// readBuffer(c)
-			_, err := request.RequestFromReader(c)
+			req, err := request.RequestFromReader(c)
 			if err != nil {
+				fmt.Println("it errd?")
 				fmt.Printf("%s", err)
 			}
+			printRequest(req)
 			c.Close()
 		}(conn)
 
 	}
 	// readBuffer(file)
 
+}
+
+func printRequest(req *request.Request) {
+
+	fmt.Println("Request Line:")
+	fmt.Printf("- Method: %s\n", req.RequestLine.Method)
+	fmt.Printf("- Target: %s\n", req.RequestLine.RequestTarget)
+	fmt.Printf("- Version: %s\n", req.RequestLine.HttpVersion)
+
+	fmt.Println("Headers:")
+
+	for key, val := range req.Headers {
+		fmt.Printf("- %s: %s\n", strings.ToUpper(key), strings.ToUpper(val))
+	}
 }

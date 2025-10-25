@@ -36,11 +36,15 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 		}
 		if err != nil {
 			fmt.Printf("%s\n", err)
+			break
+		}
+
+		if len(line) == 0 {
+			break
 		}
 
 		if i == 0 {
 			s := string(line)
-			fmt.Printf("%s\n", s)
 			arrs := strings.Fields(s)
 
 			if len(arrs) != 3 {
@@ -55,9 +59,11 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 				Method:        arrs[0],
 			}
 		} else {
-			headers.Parse(line)
+			_, _, err := headers.Parse(line)
+			if err != nil {
+				fmt.Printf("The error - %s", err)
+			}
 		}
-
 		i++
 	}
 	return &req, nil
