@@ -24,6 +24,11 @@ func (h Headers) Parse(data []byte) (n int, done bool, err error) {
 	headerName, _ := strings.CutSuffix(parts[0], ":")
 	headerValue := parts[1]
 
+	validFieldName := regexp.MustCompile("^[a-zA-Z0-9!#\\$%&'\\*\\+\\-\\.\\^_`\\|,~)]+$")
+	if !validFieldName.Match([]byte(headerName)) {
+		return 0, false, fmt.Errorf("headers malformed")
+	}
+
 	fmt.Printf("header name %s\n", headerName)
 	fmt.Printf("header value %s\n", headerValue)
 
