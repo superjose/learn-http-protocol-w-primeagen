@@ -1,6 +1,7 @@
 package request
 
 import (
+	"GO_HTTP_PROTOCOL/internal/headers"
 	"bufio"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 
 type Request struct {
 	RequestLine RequestLine
+	Headers     headers.Headers
 }
 
 type RequestLine struct {
@@ -22,9 +24,13 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 
 	read := bufio.NewReader(reader)
 	i := 0
-	req := Request{}
+	headers := headers.NewHeaders()
+	req := Request{
+		Headers: headers,
+	}
+
 	for {
-		cost, _, err := read.ReadLine()
+		line, _, err := read.ReadLine()
 		if errors.Is(err, io.EOF) {
 			break
 		}
@@ -33,7 +39,7 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 		}
 
 		if i == 0 {
-			s := string(cost)
+			s := string(line)
 			fmt.Printf("%s\n", s)
 			arrs := strings.Fields(s)
 
@@ -48,6 +54,8 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 				RequestTarget: arrs[1],
 				Method:        arrs[0],
 			}
+		} else {
+			headers.Parse(line)
 		}
 
 		i++

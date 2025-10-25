@@ -39,31 +39,41 @@ func (h Headers) Parse(data []byte) (n int, done bool, err error) {
 			return 0, false, fmt.Errorf("headers malformed")
 		}
 
-		fmt.Println("🐥")
-		fmt.Printf("%s\n", line)
-		fmt.Println("🐥")
-
 		parts := strings.Fields(string(line))
+
+		validFieldName := regexp.MustCompile("^[a-zA-Z0-9!#\\$%&'\\*\\+\\-\\.\\^_`\\|,~]+:$")
+		if !validFieldName.Match([]byte(parts[0])) {
+			return 0, false, fmt.Errorf("headers malformed")
+		}
 
 		headerName, _ := strings.CutSuffix(parts[0], ":")
 		headerValue := parts[1]
 
-		validFieldName := regexp.MustCompile("^[a-zA-Z0-9!#\\$%&'\\*\\+\\-\\.\\^_`\\|,~)]+$")
-		if !validFieldName.Match([]byte(headerName)) {
-			return 0, false, fmt.Errorf("headers malformed")
-		}
+		h.Set(headerName, headerValue)
 
-		fmt.Printf("header name %s\n", headerName)
-		fmt.Printf("header value %s\n", headerValue)
-
-		if _, exists := h[headerName]; exists {
-			h[headerName] = h[headerName] + " " + headerValue
-			continue
-		}
-		h[headerName] = headerValue
 	}
 
 	bytesConsumed := len(data) - 2
 	return bytesConsumed, false, nil
 
+}
+
+func (h Headers) Get(nonNormalizedKey string) string {
+	key := h.normalizeKey(nonNormalizedKey)
+	if _, exists := h[key]; exists {
+		return h[key]
+	}
+	return ""
+}
+func (h Headers) Set(nonNormalizedKey string, value string) {
+	key := h.normalizeKey(nonNormalizedKey)
+	if _, exists := h[key]; exists {
+		h[key] = h[key] + " " + value
+		return
+	}
+	h[key] = value
+}
+
+func (h Headers) normalizeKey(key string) string {
+	return strings.ToLower(key)
 }
