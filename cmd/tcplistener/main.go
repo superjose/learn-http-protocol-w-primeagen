@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
+	"net"
 )
+
+const port = ":42069"
 
 func readBuffer(reader io.Reader) {
 	scanner := bufio.NewReader(reader)
@@ -16,23 +18,37 @@ func readBuffer(reader io.Reader) {
 		// buffer := make([]byte, 8)
 		line, _, errBytes := scanner.ReadLine()
 		if errors.Is(errBytes, io.EOF) {
-			os.Exit(0)
+			return
 		} else if errBytes != nil {
 			fmt.Printf("Errored: %s", errBytes)
-			os.Exit(1)
+			return
 		}
-		fmt.Printf("read: %s\n", line)
+		fmt.Printf("%s\n", line)
 	}
 }
 
 func main() {
-	file, err := os.OpenFile("./messages.txt", os.O_RDONLY, 0444)
+	listener, err := net.Listen("tcp", port)
 
 	if err != nil {
 		log.Fatal("Error while opening the file")
 		return
 	}
-	defer file.Close()
-	readBuffer(file)
+	defer listener.Close()
+	fmt.Printf("TCP Listening on port %s\n", port)
+	for {
+		conn, err := listener.Accept()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go func(c net.Conn) {
+			readBuffer(c)
+			c.Close()
+		}(conn)
+
+	}
+	// readBuffer(file)
 
 }
