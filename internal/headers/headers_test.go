@@ -35,3 +35,11 @@ func TestInvalidHeader(t *testing.T) {
 	assert.Equal(t, 0, n)
 	assert.False(t, done)
 }
+
+func TestMultiHeaders(t *testing.T) {
+	headers := NewHeaders()
+	data := []byte("Set-Person: lane-loves-go\r\nSet-Person: prime-loves-zig\r\nSet-Person: tj-loves-ocaml\r\n\r\n")
+	_, _, err := headers.Parse(data)
+	require.NoError(t, err)
+	assert.Equal(t, "lane-loves-go prime-loves-zig tj-loves-ocaml", headers["Set-Person"])
+}
