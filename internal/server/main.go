@@ -1,6 +1,7 @@
 package server
 
 import (
+	"GO_HTTP_PROTOCOL/internal/response"
 	"log"
 	"net"
 	"strconv"
@@ -22,12 +23,13 @@ func Serve(port int) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer listener.Close()
 
-	err = server.listen(listener)
-	if err != nil {
-		return nil, err
-	}
+	go func() {
+		err = server.listen(listener)
+		if err != nil {
+			log.Printf("[ERROR] - %v", err)
+		}
+	}()
 	return &server, nil
 }
 
@@ -44,20 +46,25 @@ func (s *Server) listen(listener net.Listener) error {
 		}
 
 		go func(c net.Conn) {
-			res, err := s.handle(c)
+			err := s.handle(c)
 			if err != nil {
-				log.Printf("[ERROR] - %v", res)
+				log.Printf("[ERROR] - %v", err)
 			}
-			log.Printf("%s", res)
+
 		}(conn)
 	}
 }
 
-func (s *Server) handle(conn net.Conn) (Response, error) {
-	response := "HTTP/1.1 200 OK\r\n" +
-		"Content-Type: text/plain\r\n" +
-		"Content-Length: 13\r\n" +
-		"\r\n" +
-		"Hello World!"
-	return Response(response), nil
+func (s *Server) handle(conn net.Conn) error {
+	defer conn.Close()
+	err := response.WriteStatusLine(conn, response.HTTP_200)
+	if err != nil {
+		return err
+	}
+	headers := response.GetDefaultHeaders(0)
+	err = response.WriteHeaders(conn, headers)
+	if err != nil {
+		return err
+	}
+	return nil
 }

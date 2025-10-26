@@ -1,7 +1,8 @@
-package httpserver
+package main
 
 import (
 	"GO_HTTP_PROTOCOL/internal/server"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 const port = 42069
 
 func main() {
+	fmt.Printf("Listening on port %d\n", port)
 	server, err := server.Serve(port)
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
