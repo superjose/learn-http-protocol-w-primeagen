@@ -31,7 +31,7 @@ func (h Headers) Parse(data []byte) (n int, done bool, err error) {
 			return 0, false, err
 		}
 		if len(line) == 0 {
-			continue
+			break
 		}
 
 		re := regexp.MustCompile(`^\w`)
