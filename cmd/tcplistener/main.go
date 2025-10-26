@@ -30,8 +30,7 @@ func main() {
 			// readBuffer(c)
 			req, err := request.RequestFromReader(c)
 			if err != nil {
-				fmt.Println("it errd?")
-				fmt.Printf("%s", err)
+				log.Printf("[DEBUG] %v", err)
 			}
 			printRequest(req)
 			c.Close()
@@ -54,4 +53,7 @@ func printRequest(req *request.Request) {
 	for key, val := range req.Headers {
 		fmt.Printf("- %s: %s\n", strings.ToUpper(key), strings.ToUpper(val))
 	}
+
+	fmt.Println("Body:")
+	fmt.Printf("%s", req.Body)
 }
