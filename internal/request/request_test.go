@@ -129,5 +129,6 @@ func TestBody(t *testing.T) {
 		numBytesPerRead: 3,
 	}
 	_, err = RequestFromReader(reader)
+
 	require.Error(t, err)
 }

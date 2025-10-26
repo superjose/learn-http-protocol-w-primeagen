@@ -122,7 +122,6 @@ func extractBody(reader *bufio.Reader, contentLengthStr string) (body.Body, erro
 	bodyBytes := make([]byte, contentLength)
 	_, err = io.ReadFull(reader, bodyBytes)
 	if err != nil {
-		fmt.Printf("%s", err)
 		return nil, err
 	}
 	body.Parse(bodyBytes)
