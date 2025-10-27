@@ -2,6 +2,7 @@ package response
 
 import (
 	"GO_HTTP_PROTOCOL/internal/headers"
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -15,6 +16,11 @@ const (
 	HTTP_400
 	HTTP_500
 )
+
+type Response struct {
+	Status StatusCode
+	Body   bytes.Buffer
+}
 
 func WriteStatusLine(w io.Writer, statusCode StatusCode) error {
 	a := func(code uint16, msg string) error {
@@ -58,4 +64,8 @@ func WriteHeaders(w io.Writer, headers headers.Headers) error {
 	}
 	_, err := w.Write([]byte("\r\n"))
 	return err
+}
+
+func (res *Response) Write(w io.Writer) {
+	w.Write(append(res.Body.Bytes(), "\n"...))
 }

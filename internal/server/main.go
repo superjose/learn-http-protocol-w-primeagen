@@ -1,7 +1,9 @@
 package server
 
 import (
+	"GO_HTTP_PROTOCOL/internal/request"
 	"GO_HTTP_PROTOCOL/internal/response"
+	"bytes"
 	"log"
 	"net"
 	"strconv"
@@ -9,15 +11,15 @@ import (
 
 type Server struct {
 	listener net.Listener
+	handler  Handler
 }
 
-type Response string
-
-func Serve(port int) (*Server, error) {
+func Serve(port int, handler Handler) (*Server, error) {
 
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	server := Server{
 		listener: listener,
+		handler:  handler,
 	}
 
 	if err != nil {
@@ -46,25 +48,57 @@ func (s *Server) listen(listener net.Listener) error {
 		}
 
 		go func(c net.Conn) {
-			err := s.handle(c)
-			if err != nil {
-				log.Printf("[ERROR] - %v", err)
-			}
-
+			s.handle(c)
 		}(conn)
 	}
 }
 
-func (s *Server) handle(conn net.Conn) error {
+func (s *Server) handle(conn net.Conn) {
 	defer conn.Close()
-	err := response.WriteStatusLine(conn, response.HTTP_200)
+	req, err := request.RequestFromReader(conn)
+
 	if err != nil {
-		return err
+		hErr := &HandleError{
+			StatusCode: response.HTTP_400,
+			Message:    err.Error(),
+		}
+		hErr.Write(conn)
+		return
 	}
-	headers := response.GetDefaultHeaders(0)
+
+	res := &response.Response{
+		Status: response.HTTP_200,
+		Body:   *bytes.NewBuffer([]byte{}),
+	}
+	hErr := s.handler(res, req)
+	if hErr != nil {
+		hErr := &HandleError{
+			StatusCode: response.HTTP_400,
+			Message:    err.Error(),
+		}
+		hErr.Write(conn)
+		return
+	}
+	r := res.Body.Bytes()
+	err = response.WriteStatusLine(conn, res.Status)
+	if err != nil {
+		hErr := &HandleError{
+			StatusCode: response.HTTP_500,
+			Message:    err.Error(),
+		}
+		hErr.Write(conn)
+		return
+	}
+	headers := response.GetDefaultHeaders(len(r))
 	err = response.WriteHeaders(conn, headers)
 	if err != nil {
-		return err
+		hErr := &HandleError{
+			StatusCode: response.HTTP_500,
+			Message:    err.Error(),
+		}
+		hErr.Write(conn)
+		return
 	}
-	return nil
+	res.Write(conn)
+
 }
