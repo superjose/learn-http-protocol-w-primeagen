@@ -81,3 +81,7 @@ func (h Headers) normalizeKey(key string) string {
 func (h Headers) Update(key string, value string) {
 	h[key] = value
 }
+
+func (h Headers) Remove(key string) {
+	delete(h, key)
+}

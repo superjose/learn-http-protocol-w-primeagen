@@ -70,6 +70,10 @@ func WriteHeaders(w io.Writer, headers headers.Headers) error {
 func (res *Response) GetHeaders() headers.Headers {
 	// This actually mutates it
 	res.Headers.Update("Content-Length", strconv.Itoa(len(res.Body.Bytes())))
+	hasTransferEncoding := len(res.Headers.Get("Transfer-Encoding")) > 0
+	if hasTransferEncoding {
+		res.Headers.Remove("Content-Length")
+	}
 	return res.Headers
 }
 func (res *Response) Write(w io.Writer) {
