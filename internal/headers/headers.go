@@ -77,3 +77,7 @@ func (h Headers) Set(nonNormalizedKey string, value string) {
 func (h Headers) normalizeKey(key string) string {
 	return strings.ToLower(key)
 }
+
+func (h Headers) Update(key string, value string) {
+	h[key] = value
+}

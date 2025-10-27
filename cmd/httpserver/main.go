@@ -16,15 +16,22 @@ const port = 42069
 func main() {
 	fmt.Printf("Listening on port %d\n", port)
 	server, err := server.Serve(port, func(res *response.Response, req *request.Request) *server.HandleError {
-		log.Printf("Response is %s\n", req.RequestLine.RequestTarget)
+		res.Headers.Update("Content-Type", "text/html")
 		if req.RequestLine.RequestTarget == "/yourproblem" {
+			f, _ := os.ReadFile("./cmd/httpserver/static/400.html")
 			res.Status = response.HTTP_400
-			res.Body.Write([]byte("Your problem is not my problem"))
+			res.Body.Write(f)
+			return nil
 		}
 		if req.RequestLine.RequestTarget == "/myproblem" {
+			f, _ := os.ReadFile("./cmd/httpserver/static/500.html")
 			res.Status = response.HTTP_500
-			res.Body.Write([]byte("Woopsie, my bad"))
+			res.Body.Write(f)
+			return nil
 		}
+		f, _ := os.ReadFile("./cmd/httpserver/static/200.html")
+		res.Status = response.HTTP_200
+		res.Body.Write(f)
 		return nil
 	})
 	if err != nil {

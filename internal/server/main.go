@@ -1,6 +1,7 @@
 package server
 
 import (
+	"GO_HTTP_PROTOCOL/internal/headers"
 	"GO_HTTP_PROTOCOL/internal/request"
 	"GO_HTTP_PROTOCOL/internal/response"
 	"bytes"
@@ -66,11 +67,13 @@ func (s *Server) handle(conn net.Conn) {
 		return
 	}
 
-	res := &response.Response{
-		Status: response.HTTP_200,
-		Body:   *bytes.NewBuffer([]byte{}),
+	defaultResponse := &response.Response{
+		Status:  response.HTTP_200,
+		Body:    *bytes.NewBuffer([]byte{}),
+		Headers: headers.NewHeaders(),
 	}
-	hErr := s.handler(res, req)
+
+	hErr := s.handler(defaultResponse, req)
 	if hErr != nil {
 		hErr := &HandleError{
 			StatusCode: response.HTTP_400,
@@ -79,8 +82,7 @@ func (s *Server) handle(conn net.Conn) {
 		hErr.Write(conn)
 		return
 	}
-	r := res.Body.Bytes()
-	err = response.WriteStatusLine(conn, res.Status)
+	err = response.WriteStatusLine(conn, defaultResponse.Status)
 	if err != nil {
 		hErr := &HandleError{
 			StatusCode: response.HTTP_500,
@@ -89,7 +91,7 @@ func (s *Server) handle(conn net.Conn) {
 		hErr.Write(conn)
 		return
 	}
-	headers := response.GetDefaultHeaders(len(r))
+	headers := defaultResponse.GetHeaders()
 	err = response.WriteHeaders(conn, headers)
 	if err != nil {
 		hErr := &HandleError{
@@ -99,6 +101,6 @@ func (s *Server) handle(conn net.Conn) {
 		hErr.Write(conn)
 		return
 	}
-	res.Write(conn)
+	defaultResponse.Write(conn)
 
 }

@@ -18,8 +18,9 @@ const (
 )
 
 type Response struct {
-	Status StatusCode
-	Body   bytes.Buffer
+	Status  StatusCode
+	Body    bytes.Buffer
+	Headers headers.Headers
 }
 
 func WriteStatusLine(w io.Writer, statusCode StatusCode) error {
@@ -66,6 +67,11 @@ func WriteHeaders(w io.Writer, headers headers.Headers) error {
 	return err
 }
 
+func (res *Response) GetHeaders() headers.Headers {
+	// This actually mutates it
+	res.Headers.Update("Content-Length", strconv.Itoa(len(res.Body.Bytes())))
+	return res.Headers
+}
 func (res *Response) Write(w io.Writer) {
 	w.Write(append(res.Body.Bytes(), "\n"...))
 }
